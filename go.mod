@@ -4,6 +4,7 @@ go 1.23.1
 
 require (
 	github.com/imroc/req/v3 v3.46.1
+	github.com/joho/godotenv v1.5.1
 	github.com/xuri/excelize/v2 v2.8.1
 )
 
@@ -14,7 +15,6 @@ require (
 	github.com/google/pprof v0.0.0-20240910150728-a0b0bb1d4134 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
-	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/onsi/ginkgo/v2 v2.20.2 // indirect

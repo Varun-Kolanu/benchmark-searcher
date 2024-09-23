@@ -20,7 +20,13 @@ func main() {
 	gitHubToken := os.Getenv("GITHUB_TOKEN")
 
 	topRepos := utils.GetTopRepos(gitHubToken)
-	data := utils.GetFilteredRepos(topRepos, gitHubToken)
+	requiredRepos := []string{}
+	for ind, repo := range topRepos {
+		if ind%3 == 2 {
+			requiredRepos = append(requiredRepos, repo)
+		}
+	}
+	data := utils.GetFilteredRepos(requiredRepos, gitHubToken)
 	f := excelize.NewFile()
 
 	for i, value := range data {
@@ -31,7 +37,7 @@ func main() {
 		}
 	}
 
-	if err := f.SaveAs("ReposHavingTestsInTop100Popular.xlsx"); err != nil {
+	if err := f.SaveAs("ReposHavingTestsInTop100Popular3.xlsx"); err != nil {
 		log.Fatalf("Error saving the Excel file: %v", err)
 	}
 
