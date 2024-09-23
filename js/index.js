@@ -1,28 +1,56 @@
 import { configDotenv } from "dotenv";
-import { Octokit } from "@octokit/rest";
+import { graphql } from "@octokit/graphql";
 import { ConvertToExcel } from "./convertToExcel.js";
 configDotenv();
 
-async function getTopRepos(octokit) {
-    const query = "language:JavaScript stars:>20000 forks:>500";
+async function getTopRepos(token) {
 
-    const repos = await octokit.rest.search.repos({
-        q: query,
-        per_page: "100",
+    const { search: { edges } } = await graphql({
+        query: `query SearchTopRepos($queryString: String!){
+            search(query: $queryString, type: REPOSITORY, first: 100) {
+                edges {
+                    node {
+                        ... on Repository {
+                            nameWithOwner
+                        }
+                    }
+                }
+            }
+        }`,
+        queryString: "language:JavaScript stars:>20000 forks:>500",
+        headers: {
+            authorization: `Bearer ${token}`,
+        },
     });
-    return repos.data.items.map((it) => it.full_name);
+
+    return edges.map(edge => edge.node.nameWithOwner)
 }
 
-async function getPaths(octokit, owner, repo) {
-    return octokit.rest.git
-        .getTree({
-            owner,
-            repo,
-            tree_sha: "HEAD",
-        })
+async function getPaths(token, owner, repo) {
+    return graphql({
+        query: `query GetTree($owner: String!, $repo: String!, $ref: String!){
+                        repository(owner: $owner, name: $repo) {
+                            object(expression: $ref) {
+                                ... on Tree {
+                                    entries {
+                                        path
+                                        type
+                                    }
+                                }
+                            }
+                        }
+                    }`,
+        owner,
+        repo,
+        ref: "HEAD:",
+        headers: {
+            authorization: `Bearer ${token}`,
+        },
+    })
         .then((res) => {
+            const { repository: { object: { entries } } } = res
             return [
-                res.data.tree.filter((tr) => tr.type === "tree").map((tr) => tr.path),
+                entries.filter((e) => e.type === "tree").map((e) => e.path),
                 `${owner}/${repo}`,
             ];
         })
@@ -32,9 +60,9 @@ async function getPaths(octokit, owner, repo) {
         });
 }
 
-async function getFilteredRepos(octokit, repos) {
+async function getFilteredRepos(token, repos) {
     const pathPromises = repos.map((repo) =>
-        getPaths(octokit, repo.split("/")[0], repo.split("/")[1])
+        getPaths(token, repo.split("/")[0], repo.split("/")[1])
     );
 
     return Promise.all(pathPromises)
@@ -53,18 +81,14 @@ async function getFilteredRepos(octokit, repos) {
 
 async function main() {
     const github_token = process.env.GITHUB_TOKEN;
-    const octokit = new Octokit({
-        auth: github_token,
-    });
 
-    const repos = await getTopRepos(octokit);
+    const repos = await getTopRepos(github_token);
     const required_repos = repos
         .map((repo, index) => {
             if (index % 3 === 1) return repo;
         })
         .filter((repo) => repo);
-    const filteredRepos = await getFilteredRepos(octokit, required_repos);
-    console.log(filteredRepos);
+    const filteredRepos = await getFilteredRepos(github_token, required_repos);
     ConvertToExcel(filteredRepos);
 }
 

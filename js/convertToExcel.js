@@ -7,7 +7,7 @@ export function ConvertToExcel(repos) {
 
     utils.book_append_sheet(wb, ws, 'Sheet1');
 
-    const filePath = './reposFiltered.xlsx';
+    const filePath = './reposFiltered2.xlsx';
     writeFile(wb, filePath);
 
     console.log(`Excel file written to ${filePath}`);
