@@ -43,6 +43,5 @@ func GetTopRepos(token string) []string {
 		fullNames = append(fullNames, repo.FullName)
 	}
 
-	// fmt.Println("Full Names of Repositories:", fullNames)
 	return fullNames
 }

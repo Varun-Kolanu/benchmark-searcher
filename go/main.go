@@ -27,6 +27,8 @@ func main() {
 		}
 	}
 	data := utils.GetFilteredRepos(requiredRepos, gitHubToken)
+	fmt.Println(data)
+
 	f := excelize.NewFile()
 
 	for i, value := range data {
@@ -37,7 +39,7 @@ func main() {
 		}
 	}
 
-	if err := f.SaveAs("ReposHavingTestsInTop100Popular3.xlsx"); err != nil {
+	if err := f.SaveAs("reposFiltered.xlsx"); err != nil {
 		log.Fatalf("Error saving the Excel file: %v", err)
 	}
 
